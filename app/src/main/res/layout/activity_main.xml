@@ -1,18 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:id="@+id/rootLayout"
+    android:background="#DCDCDC"
+    android:padding="24dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <ImageView
+        android:id="@+id/activity_main_original_imageView"
+        android:layout_width="0dp"
+        android:layout_height="225dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/activity_main_original_description_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Original Image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/activity_main_original_imageView"
+        app:layout_constraintTop_toBottomOf="@+id/activity_main_original_imageView" />
+
+    <Button
+        android:id="@+id/activity_main_open_files_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Open Files"
+        app:layout_constraintEnd_toStartOf="@+id/activity_main_convert_btn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/activity_main_original_description_textView" />
+
+    <Button
+        android:id="@+id/activity_main_convert_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="CONVERT JPG TO PNG"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/activity_main_open_files_btn"
+        app:layout_constraintTop_toBottomOf="@+id/activity_main_original_description_textView" />
+
+    <ImageView
+        android:id="@+id/activity_main_converted_imageView"
+        android:layout_width="0dp"
+        android:layout_height="225dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/activity_main_convert_btn" />
+
+    <TextView
+        android:id="@+id/activity_main_converted_description_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Converted Image"
+        app:layout_constraintEnd_toEndOf="@+id/activity_main_converted_imageView"
+        app:layout_constraintStart_toStartOf="@+id/activity_main_converted_imageView"
+        app:layout_constraintTop_toBottomOf="@+id/activity_main_converted_imageView" />
+
+    <Button
+        android:id="@+id/activity_main_save_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Save Converted Image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/activity_main_converted_description_textView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
