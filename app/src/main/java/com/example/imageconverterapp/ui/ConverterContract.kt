@@ -13,11 +13,12 @@ interface ConverterContract {
         fun showConvertedImage(bitmap: Bitmap)
         fun showError(throwable: Throwable)
 
-        fun openFile(uri: Uri)
+        fun openFile(uri: Uri): Bitmap
         fun saveFile(uri: Uri, bitmapXByteArray: ByteArray)
 
         fun convertBtnEnable(isEnable: Boolean)
         fun saveBtnEnable(isEnable: Boolean)
+        fun clearConvertedImage()
 
     }
 
@@ -32,8 +33,5 @@ interface ConverterContract {
         fun onOpenImageClick()
         fun onSaveImageClick()
         fun onConvertImageClick()
-
-        fun openFileSuccess(bitmap: Bitmap)
-        fun saveFileSuccess()
     }
 }

@@ -1,6 +1,5 @@
 package com.example.imageconverterapp.ui
 
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -59,17 +58,15 @@ class MainActivity : AppCompatActivity(), ConverterContract.View {
         saveLauncher.launch("my-file.png")
     }
 
-    override fun openFile(uri: Uri) {
-        val data = contentResolver.openInputStream(uri)?.use {
-            val bitmap = BitmapFactory.decodeStream(it)
-            presenter.openFileSuccess(bitmap)
+    override fun openFile(uri: Uri): Bitmap {
+        contentResolver.openInputStream(uri)?.use {
+            return BitmapFactory.decodeStream(it)
         } ?: throw IllegalStateException("Can't open input stream")
     }
 
     override fun saveFile(uri: Uri, bitmapXByteArray: ByteArray) {
         contentResolver.openOutputStream(uri)?.use {
             it.write(bitmapXByteArray)
-            presenter.saveFileSuccess()
         } ?: throw IllegalStateException("Can't open output stream")
     }
 
@@ -79,6 +76,10 @@ class MainActivity : AppCompatActivity(), ConverterContract.View {
 
     override fun saveBtnEnable(isEnable: Boolean) {
         binding.activityMainSaveBtn.isEnabled = isEnable
+    }
+
+    override fun clearConvertedImage() {
+        binding.activityMainConvertedImageView.setImageDrawable(null)
     }
 
     override fun showError(throwable: Throwable) {

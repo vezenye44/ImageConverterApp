@@ -1,8 +1,14 @@
 package com.example.imageconverterapp.ui
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.annotation.MainThread
 import com.example.imageconverterapp.data.BitmapConverter
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Single
+import io.reactivex.rxjava3.kotlin.subscribeBy
+import io.reactivex.rxjava3.schedulers.Schedulers
 
 class ConvertedPresenter(
     // Конвертер Bitmap -> Bitmap(in PNG) or ByteArray
@@ -25,9 +31,21 @@ class ConvertedPresenter(
     // Коллбеки для registerForActivityResult()
     // Для открытия изображения
     override val openLauncherCallback: (Uri?) -> Unit
-        get() = { uri ->
+        get() = { nullableUri ->
             try {
-                uri?.let { viewState?.openFile(it) }
+                nullableUri?.let { uri ->
+                    Single.just(uri)
+                        .observeOn(Schedulers.io())
+                        .map {
+                            return@map viewState?.openFile(it)!!
+                        }
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeBy(
+                            onSuccess = {
+                                openFileSuccess(it)
+                            }
+                        )
+                }
             } catch (e: Exception) {
                 viewState?.showError(Throwable("Error in open file"))
             }
@@ -38,8 +56,17 @@ class ConvertedPresenter(
         get() = { uri ->
             try {
                 uri?.let {
-                    val byteArray = converter.convertToByteArray(bitmap = bitmap)
-                    viewState?.saveFile(it, byteArray)
+                    converter.convertToByteArray(bitmap = bitmap)
+                        .map { bytes ->
+                            viewState?.saveFile(it, bytes)
+                            return@map bytes
+                        }
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribeBy(
+                            onSuccess = {
+                                saveFileSuccess()
+                            }
+                        )
                 }
             } catch (e: Exception) {
                 viewState?.showError(Throwable("Error in save file"))
@@ -54,19 +81,29 @@ class ConvertedPresenter(
         viewState?.launchSaveFile()
     }
 
+    @SuppressLint("CheckResult")
     override fun onConvertImageClick() {
-        bitmap = converter.convertToBitmap(bitmap = bitmap)
-        viewState?.showConvertedImage(bitmap)
-        viewState?.saveBtnEnable(true)
+        converter.convertToBitmap(bitmap = bitmap)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribeBy(
+                onSuccess = { bitMap ->
+                    bitmap = bitMap
+                    viewState?.showConvertedImage(bitmap)
+                    viewState?.saveBtnEnable(true)
+                }
+            )
     }
 
-    override fun openFileSuccess(bitmap: Bitmap) {
+    @MainThread
+    private fun openFileSuccess(bitmap: Bitmap) {
         this.bitmap = bitmap
         viewState?.showOriginalImage(bitmap)
         viewState?.convertBtnEnable(true)
     }
 
-    override fun saveFileSuccess() {
+    @MainThread
+    private fun saveFileSuccess() {
         viewState?.saveBtnEnable(false)
+        viewState?.clearConvertedImage()
     }
 }
