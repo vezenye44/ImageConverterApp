@@ -15,17 +15,38 @@ class ConvertedPresenter(
     private val converter: BitmapConverter
 ) : ConverterContract.Presenter {
 
-    private var viewState: ConverterContract.View? = null
+    private var view: ConverterContract.View? = null
+
     private lateinit var bitmap: Bitmap
 
+    //view state:
+    private val stateOfView = object {
+        var bitmapOriginalImage: Bitmap? = null
+        var bitmapConvertedImage: Bitmap? = null
+        var isShowError = false
+        var enableSaveBtn = false
+        var enableConvertBtn = false
+    }
+
     override fun attach(viewState: ConverterContract.View) {
-        this.viewState = viewState
-        viewState.convertBtnEnable(false)
-        viewState.saveBtnEnable(false)
+        this.view = viewState
+
+        initView()
+    }
+
+    private fun initView() {
+        view?.convertBtnEnable(stateOfView.enableConvertBtn)
+        view?.saveBtnEnable(stateOfView.enableSaveBtn)
+        stateOfView.bitmapOriginalImage?.let {
+            view?.showOriginalImage(it)
+        }
+        stateOfView.bitmapConvertedImage?.let {
+            view?.showConvertedImage(it)
+        }
     }
 
     override fun detach() {
-        viewState = null
+        view = null
     }
 
     // Коллбеки для registerForActivityResult()
@@ -37,7 +58,7 @@ class ConvertedPresenter(
                     Single.just(uri)
                         .observeOn(Schedulers.io())
                         .map {
-                            return@map viewState?.openFile(it)!!
+                            return@map view?.openFile(it)!!
                         }
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribeBy(
@@ -47,7 +68,8 @@ class ConvertedPresenter(
                         )
                 }
             } catch (e: Exception) {
-                viewState?.showError(Throwable("Error in open file"))
+                stateOfView.isShowError = true
+                view?.showError(Throwable("Error in open file"))
             }
         }
 
@@ -58,7 +80,7 @@ class ConvertedPresenter(
                 uri?.let {
                     converter.convertToByteArray(bitmap = bitmap)
                         .map { bytes ->
-                            viewState?.saveFile(it, bytes)
+                            view?.saveFile(it, bytes)
                             return@map bytes
                         }
                         .observeOn(AndroidSchedulers.mainThread())
@@ -69,16 +91,17 @@ class ConvertedPresenter(
                         )
                 }
             } catch (e: Exception) {
-                viewState?.showError(Throwable("Error in save file"))
+                stateOfView.isShowError = true
+                view?.showError(Throwable("Error in save file"))
             }
         }
 
     override fun onOpenImageClick() {
-        viewState?.launchOpenFile()
+        view?.launchOpenFile()
     }
 
     override fun onSaveImageClick() {
-        viewState?.launchSaveFile()
+        view?.launchSaveFile()
     }
 
     @SuppressLint("CheckResult")
@@ -87,23 +110,32 @@ class ConvertedPresenter(
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy(
                 onSuccess = { bitMap ->
+                    stateOfView.bitmapConvertedImage = bitMap
+                    stateOfView.enableSaveBtn = true
+
                     bitmap = bitMap
-                    viewState?.showConvertedImage(bitmap)
-                    viewState?.saveBtnEnable(true)
+                    view?.showConvertedImage(bitmap)
+                    view?.saveBtnEnable(true)
                 }
             )
     }
 
     @MainThread
     private fun openFileSuccess(bitmap: Bitmap) {
+        stateOfView.bitmapOriginalImage = bitmap
+        stateOfView.enableConvertBtn = true
+
         this.bitmap = bitmap
-        viewState?.showOriginalImage(bitmap)
-        viewState?.convertBtnEnable(true)
+        view?.showOriginalImage(bitmap)
+        view?.convertBtnEnable(true)
     }
 
     @MainThread
     private fun saveFileSuccess() {
-        viewState?.saveBtnEnable(false)
-        viewState?.clearConvertedImage()
+        stateOfView.enableSaveBtn = false
+        stateOfView.bitmapConvertedImage = null
+
+        view?.saveBtnEnable(false)
+        view?.clearConvertedImage()
     }
 }

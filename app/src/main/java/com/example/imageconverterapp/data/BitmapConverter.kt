@@ -16,3 +16,5 @@ interface BitmapConverter {
         bitmap: Bitmap
     ): Single<Bitmap>
 }
+
+

@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.example.imageconverterapp.data.BitmapConverterImpl
@@ -14,23 +15,39 @@ import com.example.imageconverterapp.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity(), ConverterContract.View {
 
     private lateinit var binding: ActivityMainBinding
-    private val presenter: ConverterContract.Presenter by lazy {
-        ConvertedPresenter(BitmapConverterImpl())
-    }
-    private val openLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent(), presenter.openLauncherCallback
-    )
-    private val saveLauncher = registerForActivityResult(
-        ActivityResultContracts.CreateDocument("image/png"), presenter.saveLauncherCallback
-    )
+    private lateinit var presenter: ConverterContract.Presenter
+
+    private lateinit var openLauncher: ActivityResultLauncher<String>
+    private lateinit var saveLauncher: ActivityResultLauncher<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        initView()
+        presenter = extractPresenter()
         presenter.attach(this)
+
+        initLaunchers()
+        initView()
+    }
+
+    private fun initLaunchers() {
+        openLauncher = registerForActivityResult(
+            ActivityResultContracts.GetContent(), presenter.openLauncherCallback
+        )
+        saveLauncher = registerForActivityResult(
+            ActivityResultContracts.CreateDocument("image/png"), presenter.saveLauncherCallback
+        )
+    }
+
+    private fun extractPresenter(): ConverterContract.Presenter {
+        return lastCustomNonConfigurationInstance as? ConverterContract.Presenter
+            ?: ConvertedPresenter(BitmapConverterImpl())
+    }
+
+    override fun onRetainCustomNonConfigurationInstance(): ConverterContract.Presenter {
+        return presenter
     }
 
     override fun onDestroy() {
